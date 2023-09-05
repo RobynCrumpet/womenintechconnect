@@ -1,0 +1,119 @@
+
+DROP DATABASE IF EXISTS Jobsboard;
+CREATE DATABASE Jobsboard;
+USE Jobsboard;
+
+CREATE TABLE Positions(
+	Positions_ID INT NOT NULL,
+    Title VARCHAR(50),
+    CONSTRAINT posid PRIMARY KEY (Positions_ID)
+);
+
+
+CREATE TABLE  Companies(
+	Company_ID INT NOT NULL,
+    Company_name VARCHAR(50) NOT NULL,
+    Logo_file_path VARCHAR (200), 
+    CONSTRAINT compid PRIMARY KEY (Company_ID)
+);
+
+
+CREATE TABLE Locations(
+	Location_ID INT NOT NULL,
+    City VARCHAR(50),
+    CONSTRAINT locid PRIMARY KEY (Location_ID)
+);
+
+CREATE TABLE Routes(
+	Route_ID INT NOT NULL,
+    Cfg_route VARCHAR(100),
+    CONSTRAINT routeid PRIMARY KEY (Route_ID)
+);
+
+-- Main job profile
+CREATE TABLE Jobs(
+	Job_ID INT NOT NULL,
+    Positions_ID INT NOT NULL,
+    Company_ID INT NOT NULL,
+    Job_description TEXT,
+    location_ID INT NOT NULL,
+    Salary INT,
+    Route_ID INT NOT NULL,
+    CONSTRAINT jobid PRIMARY KEY (Job_ID),
+    CONSTRAINT posid FOREIGN KEY (Positions_ID) REFERENCES Positions(Positions_ID),
+    CONSTRAINT compid FOREIGN KEY (Company_ID) REFERENCES Companies(Company_ID),
+    CONSTRAINT locid FOREIGN KEY (Location_ID) REFERENCES Locations(Location_ID),
+    CONSTRAINT routeid FOREIGN KEY (Route_ID) REFERENCES Routes(Route_ID)
+);
+
+INSERT INTO Positions (Positions_ID, Title)
+VALUES
+(1,"Junior Software Engineer"),
+(2, "Junior Data Engineer"),
+(3, "Junior Product Manager"),
+(4, "Junior Full-Stack Engineer");
+
+INSERT INTO Companies(Company_ID, Company_name)
+VALUES
+(1 , "Google"),
+(2 , "Microsoft"),
+(3, "Apple");
+
+INSERT INTO Locations (Location_ID, City)
+VALUES
+(123, "London"),
+(235, "Birmingham"),
+(256, "Manchester");
+
+INSERT INTO Routes (Route_ID, Cfg_route)
+VALUES
+(1, "Software"),
+(2, "Full-Stack"),
+(3, "Product-Management"),
+(4, "Data");
+
+INSERT INTO Jobs (Job_ID, Positions_ID, Company_ID, Job_description, location_ID, Salary, Route_ID )
+VALUES
+(1, 1, 1 , " Come work for Google! In this job you will be working in an agile environment. What we are looking for: python, MySQL and an understanding of OOP" , 123, 30000, 1 ),
+(2, 2, 2, " Come work for Microsoft. In this job you will be working with large sets of data. What we are looking for: python, My SQL, a STEM degree with a Maths focus ", 235, 35000, 4),
+(3, 4, 3, "Come work for Apple as a Full-Stack engineer. What we are looking for: Javascript, HTML, CSS. Knowledge of React or Angular", 256, 28000, 2);
+
+-- Retrieves all data for a job profile, using the job-ID as a parameter
+DROP PROCEDURE IF EXISTS get_all_fields;
+DELIMITER //
+CREATE PROCEDURE get_job_profile(IN j_ID INT)
+BEGIN
+SELECT j.Job_ID, p.Title, l.City, j.Salary, c.Company_Name, r.Cfg_route, j.Job_description from Jobs j
+JOIN Positions p ON p.Positions_ID = j.Positions_ID
+JOIN Locations l ON l.Location_ID = j.Location_ID
+JOIN Companies c ON c.Company_ID = j.Company_ID
+JOIN Routes r ON r.Route_ID = j.Route_ID
+WHERE j.Job_ID = j_ID;
+END //
+DELIMITER ;
+
+CALL get_job_profile(2);
+
+-- Stored procedure counts the number of jobs in the database
+DROP PROCEDURE IF EXISTS count_jobs;
+DELIMITER //
+CREATE PROCEDURE count_jobs(
+)
+BEGIN
+SELECT COUNT(Job_ID) FROM Jobs;
+END //
+DELIMITER ;
+
+CALL count_jobs();
+
+-- Store procedure retrieves all store job ids, so that they could be passed in to get_job_profile
+DROP PROCEDURE IF EXISTS get_job_ids;
+DELIMITER //
+CREATE PROCEDURE get_job_ids(
+)
+BEGIN
+SELECT Job_ID FROM Jobs;
+END //
+DELIMITER ;
+
+CALL get_job_ids();
